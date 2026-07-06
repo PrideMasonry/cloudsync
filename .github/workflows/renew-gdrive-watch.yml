@@ -1,0 +1,46 @@
+name: Renew Google Drive watch channel
+
+on:
+  schedule:
+    - cron: '5 */12 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore previous channel state
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/gdrive-watch
+          key: gdrive-watch-state-${{ github.run_id }}
+          restore-keys: |
+            gdrive-watch-state-
+
+      - name: Install rclone
+        run: curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Write rclone config
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONF }}" | base64 -d > ~/.config/rclone/rclone.conf
+          chmod 600 ~/.config/rclone/rclone.conf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Renew watch channel
+        run: node scripts/renew-gdrive-watch.js
+        env:
+          WORKER_BASE_URL: ${{ secrets.WORKER_BASE_URL }}
+          GDRIVE_CHANNEL_TOKEN: ${{ secrets.GDRIVE_CHANNEL_TOKEN }}
+
+      - name: Save channel state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/gdrive-watch
+          key: gdrive-watch-state-${{ github.run_id }}

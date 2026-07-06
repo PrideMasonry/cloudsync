@@ -1,0 +1,20 @@
+name = "gdrive-dropbox-sync-webhook"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Create with: wrangler kv namespace create DEBOUNCE_KV
+# then replace the id below with the one it prints.
+kv_namespaces = [
+  { binding = "DEBOUNCE_KV", id = "REPLACE_WITH_KV_NAMESPACE_ID" }
+]
+
+[vars]
+GITHUB_OWNER = "REPLACE_WITH_GITHUB_OWNER"
+GITHUB_REPO = "REPLACE_WITH_GITHUB_REPO"
+DEBOUNCE_SECONDS = "45"
+
+# Secrets (set via `wrangler secret put <NAME>`, never in this file):
+#   GITHUB_PAT           - fine-grained PAT with contents:write on this repo (for repository_dispatch)
+#   DROPBOX_APP_SECRET    - from the Dropbox App Console
+#   GDRIVE_CHANNEL_TOKEN  - random string you generate; must match the same secret used by
+#                           scripts/renew-gdrive-watch.js when registering the watch channel
